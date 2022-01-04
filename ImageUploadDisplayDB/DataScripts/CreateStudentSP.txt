@@ -1,0 +1,30 @@
+﻿USE [SchoolDB]
+GO
+
+/****** Object:  StoredProcedure [dbo].[SP_Student]    Script Date: 1/4/2022 3:18:01 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[SP_Student]
+		@StudentId int
+	,	@Name	nvarchar(50)
+	,	@ROLL	nvarchar(50)
+	,	@Photo varbinary(MAX)
+
+AS
+BEGIN TRAN
+
+	SET @StudentId = (SELECT COUNT(*) FROM Students) + 1
+
+	INSERT INTO Students (StudentId, [Name], Roll, Photo)
+	VALUES(@StudentId, @Name, @ROLL, @Photo)
+
+	SELECT * FROM Students WHERE StudentId = @StudentId
+
+COMMIT TRAN
+GO
+
+

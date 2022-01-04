@@ -1,0 +1,87 @@
+﻿@page "/"
+@inject ImageUploadDisplayDB.IService.IStudentService studentService
+@using ImageUploadDisplayDB.Data
+@using ImageUploadDisplayDB.PageClass
+
+<div class="col-md-12">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Name : </label>
+                </div>
+                <div class="col-md-10">
+                    <input @bind="student.Name" type="text" placeholder="Student Name" style="width:100%;" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Roll : </label>
+                </div>
+                <div class="col-md-10">
+                    <input @bind="student.Roll" type="text" placeholder="Student Roll" style="width:100%;" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Photo : </label>
+                </div>
+                <div class="col-md-10">
+                    <InputFile OnChange="HandleFileSelection" />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <img src="@imgSrc" width="200" height="200" style="border:1px solid #000000;margin-top:10px;" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <button @onclick="SaveStudent" class="btn btn-primary" style="width:100%;margin-top:10px;">Save</button>
+            <button @onclick="ReadStudent" class="btn btn-danger" style="width:100%;margin-top:10px;">Read</button>
+            <span style="font-weight:bold;font-size:24px;">@Message</span>
+        </div>
+    </div>
+</div>
+
+@code{
+    string imgSrc = "";
+    string Message = "";
+    IFileListEntry file = null;
+    byte[] _fileBytes = null;
+    Student student = new Student();
+
+    public async Task HandleFileSelection(IFileListEntry[] files)
+    {
+        if (files.Count() > 0)
+        {
+            file = files.FirstOrDefault();
+            using (var ms = new MemoryStream())
+            {
+                await file.Data.CopyToAsync(ms);
+                _fileBytes = ms.ToArray();
+
+                StudentPage studentPage = new StudentPage(studentService);
+                var photo = studentPage.GetImage(Convert.ToBase64String(_fileBytes));
+                imgSrc = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(photo));
+            }
+        }
+    }
+
+    public void SaveStudent()
+    {
+        StudentPage studentPage = new StudentPage(studentService);
+        Message = studentPage.SaveInformations(_fileBytes, student);
+
+        student = new Student();
+        imgSrc = "";
+    }
+
+    public void ReadStudent()
+    {
+        StudentPage studentPage = new StudentPage(studentService);
+        student = studentPage.GetSavedStudent();
+        imgSrc = student.ImageUrl;
+        Message = "";
+    }
+}
